@@ -20,12 +20,18 @@ import java.util.List;
 public class TrackerService {
 
     private static String VIRUS_DATA_URL="https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
+
         private List<LocationStats> finalstats=new ArrayList<>();
+
+    public List<LocationStats> getFinalstats() {
+        return finalstats;
+    }
+
     @PostConstruct
     @Scheduled(cron = "* * 1 * * *")
     public void fetchVirusData() throws IOException, InterruptedException {
          List<LocationStats> newstats=new ArrayList<>();
-         LocationStats locationStats=new LocationStats();
+
         HttpClient client=HttpClient.newHttpClient();
         HttpRequest request= HttpRequest.newBuilder()
                 .uri(URI.create(VIRUS_DATA_URL))
@@ -35,6 +41,7 @@ public class TrackerService {
         StringReader reader=new StringReader(response.body());
         Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
         for (CSVRecord record : records) {
+            LocationStats locationStats=new LocationStats();
            locationStats.setCountry(record.get("Country/Region"));
             locationStats.setState(record.get("Province/State"));
             locationStats.setTotalCases(Integer.parseInt(record.get(record.size()-1)));
@@ -42,5 +49,7 @@ public class TrackerService {
             newstats.add(locationStats);
         }
         this.finalstats=newstats;
+
+
     }
 }
